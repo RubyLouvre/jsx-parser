@@ -393,7 +393,6 @@ pp.parseText = function() {
         var matchComment = left.match(/<!--(?!<!)[^\[>][\s\S]*?-->/)
         if (matchComment) {
             log('jsx DO NOT support <!--xxx--> comment tag!')
-                //这应该抛出警告
             pool.push(matchComment.index)
         }
         if (!pool.length)
