@@ -115,11 +115,12 @@
     var pp = JSXParser.prototype
     pp.parse = function() {
         var str = this.input
+        var breakIndex = str.length
         str = clearString(str, this.map)
         str = clearBrace(str, this.map)
         this.input = str //str is a pure XML
         this.index = 0
-        var breakIndex = 10000
+
         do {
             this.parseComment()
             this.parseOpenTag()
