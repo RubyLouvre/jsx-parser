@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>JSX Parser</title>
+</head>
+
+<body>
+</body>
+<script src='./index.umd.js'>
+</script>
+
+<script>
+    // 
+    var str = '<div><div id={ 2222 } kkk={<div/>} class="{111}" >xxx{[1,2,3,4].map(function(el){ return <div ref=3 >{el}</div> })}22</div><div><div ref=111>{55}</div></div></div>'
+        // 用渲染函数构建虚拟模版类
+    var array = (new JSXParser(str)).parse()
+    console.log(JSON.stringify(array))
+    var str = '<div id={ 2222 } ><br/></div>'
+    var array = (new JSXParser(str)).parse()
+    console.log(JSON.stringify(array))
+</script>
+
+</html>

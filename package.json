@@ -1,0 +1,23 @@
+{
+  "name": "jsx-parser",
+  "version": "1.0.0",
+  "description": "a simple jsx parser",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RubyLouvre/jsx-parser.git"
+  },
+  "keywords": [
+    "jsx",
+    "parser"
+  ],
+  "author": "RubyLouvre",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/RubyLouvre/jsx-parser/issues"
+  },
+  "homepage": "https://github.com/RubyLouvre/jsx-parser#readme"
+}
