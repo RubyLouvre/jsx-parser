@@ -6,7 +6,7 @@ how to require
 
 ```
 import JSXParser form 'index'
-
+```
 
 ```javascript
 
@@ -19,7 +19,88 @@ console.log(JSON.stringify(array))
 output
 
 ```json
-[{"type":"div","props":{},"children":[{"type":"div","props":{"id":{"type":"#jsx","nodeValue":" 2222 "},"kkk":{"type":"#jsx","nodeValue":[{"type":"div","props":{},"children":[],"isVoidTag":true}]},"class":"{111}"},"children":[{"type":"#text","nodeValue":"xxx"},{"type":"#jsx","nodeValue":[{"type":"#jsx","nodeValue":"[1,2,3,4].map(function(el){ return "},{"type":"div","props":{"ref":"3"},"children":[{"type":"#jsx","nodeValue":"el"}]},{"type":"#jsx","nodeValue":" })"}]},{"type":"#text","nodeValue":"22"}]},{"type":"div","props":{},"children":[{"type":"div","props":{"ref":"111"},"children":[{"type":"#jsx","nodeValue":"55"}]}]}]}]
+[
+    {
+        "type": "div", 
+        "props": { }, 
+        "children": [
+            {
+                "type": "div", 
+                "props": {
+                    "id": {
+                        "type": "#jsx", 
+                        "nodeValue": " 2222 "
+                    }, 
+                    "kkk": {
+                        "type": "#jsx", 
+                        "nodeValue": [
+                            {
+                                "type": "div", 
+                                "props": { }, 
+                                "children": [ ], 
+                                "isVoidTag": true
+                            }
+                        ]
+                    }, 
+                    "class": "{111}"
+                }, 
+                "children": [
+                    {
+                        "type": "#text", 
+                        "nodeValue": "xxx"
+                    }, 
+                    {
+                        "type": "#jsx", 
+                        "nodeValue": [
+                            {
+                                "type": "#jsx", 
+                                "nodeValue": "[1,2,3,4].map(function(el){ return "
+                            }, 
+                            {
+                                "type": "div", 
+                                "props": {
+                                    "ref": "3"
+                                }, 
+                                "children": [
+                                    {
+                                        "type": "#jsx", 
+                                        "nodeValue": "el"
+                                    }
+                                ]
+                            }, 
+                            {
+                                "type": "#jsx", 
+                                "nodeValue": " })"
+                            }
+                        ]
+                    }, 
+                    {
+                        "type": "#text", 
+                        "nodeValue": "22"
+                    }
+                ]
+            }, 
+            {
+                "type": "div", 
+                "props": { }, 
+                "children": [
+                    {
+                        "type": "div", 
+                        "props": {
+                            "ref": "111"
+                        }, 
+                        "children": [
+                            {
+                                "type": "#jsx", 
+                                "nodeValue": "55"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
 ```
 
 ![](./free_software_licenses.png)
