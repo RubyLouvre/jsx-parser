@@ -2,12 +2,24 @@
 
 ## a lightweight jsx parser
 
+npm
+
+```
+npm install jsx-parser
+```
+
 how to require
 
 ```
 import JSXParser form 'index'
 ```
 
+or 
+```html
+<script src="index.umd"></script
+```
+
+how to use
 ```javascript
 
 var str = '<div><div id={ 2222 } kkk={<div/>} class="{111}" >xxx{[1,2,3,4].map(function(el){ return <div ref=3 >{el}</div> })}22</div><div><div ref=111>{55}</div></div></div>'
