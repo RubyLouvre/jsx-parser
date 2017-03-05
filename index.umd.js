@@ -405,7 +405,7 @@
             //  if (!pool.length)
             //       return
             //  var index = Math.min.apply(0, pool)
-            if (index !== 0) {
+            if (index > 0) {
                 this.createText(left, index)
             }
 
