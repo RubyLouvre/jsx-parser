@@ -390,20 +390,21 @@
                 this.createText(left, i)
             }
         } else {
-            var pool = []
-            var matchTag = left.match(/<\/?[a-z][^>]+>/)
+            // var pool = []
+            var matchTag = left.match(/<\/?[a-z][^>]*>/)
             if (matchTag) {
-                pool.push(matchTag.index)
+                var index = matchTag.index
+                    // pool.push(matchTag.index)
             }
             var matchComment = left.match(/<!--(?!<!)[^\[>][\s\S]*?-->/)
             if (matchComment) {
-                log('jsx DO NOT support <!--xxx--> comment tag!')
+                throw ('jsx DO NOT support <!--xxx--> comment tag!')
                     //这应该抛出警告
-                pool.push(matchComment.index)
+                    // pool.push(matchComment.index)
             }
-            if (!pool.length)
-                return
-            var index = Math.min.apply(0, pool)
+            //  if (!pool.length)
+            //       return
+            //  var index = Math.min.apply(0, pool)
             if (index !== 0) {
                 this.createText(left, index)
             }
