@@ -391,7 +391,7 @@
             }
         } else {
             // var pool = []
-            var matchTag = left.match(/<\/?[a-z][^>]*>/)
+            var matchTag = left.match(/<\/?[a-z][^>]*>/i)
             if (matchTag) {
                 var index = matchTag.index
                     // pool.push(matchTag.index)
