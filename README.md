@@ -116,3 +116,12 @@ output
 ```
 
 ![](./free_software_licenses.png)
+
+
+```
+  var a = new JSXParser('<div id={22} class="ddd" {...{a:1,b:2}}>111</div>')
+  console.log(a)
+```
+![](./ready.png)
+
+ 

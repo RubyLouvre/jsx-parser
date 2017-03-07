@@ -408,6 +408,8 @@ pp.parseText = function() {
 }
 
 var rattrs = /([^=\s]+)(?:=(\S+))?/ 
+var rspread = /^\s*\.{3}/
+
 pp.parseProps = function(attrs) {
     var props = this.node.props
     while (attrs) {
@@ -418,6 +420,13 @@ pp.parseProps = function(attrs) {
             var value = arr[2] || ''
             attrs = attrs.replace(arr[0], '')
             value = this.parseJSXAttr(value)
+            if (name.slice(0, 2) === '??') {
+                value = this.parseJSXAttr(name)
+                if (rspread.test(value.nodeValue)) {
+                    this.node.spreadAttribute = value.nodeValue.replace(rspread, '')
+                }
+                continue
+            }
             props[name] = value
         } else {
             break
