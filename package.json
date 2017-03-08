@@ -1,6 +1,6 @@
 {
   "name": "jsx-parser",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "a simple jsx parser",
   "main": "index.js",
   "scripts": {
