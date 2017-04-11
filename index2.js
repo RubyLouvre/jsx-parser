@@ -17,18 +17,16 @@ function lexer(string, opts) {
             ret.push(node)
         }
     }
-
+    var lastNode
     do {
         if (--breakIndex === 0) {
             break
         }
-        console.log(string)
         var arr = getCloseTag(string)
         if (arr) {
-            console.log(arr)
             string = string.replace(arr[0], '')
             stack.pop()
-
+            lastNode = null
             continue
         }
         var arr = getOpenTag(string)
@@ -39,9 +37,37 @@ function lexer(string, opts) {
             if (!node.isVoidTag) {
                 stack.push(node)
             }
+            lastNode = node
             continue
         }
 
+        var text = ''
+        do {
+            const index = string.indexOf('<')
+            if (index === 0) {
+                text += string.slice(0, 1)
+                string = string.slice(1)
+            } else if (index === -1) {
+                text += string
+                string = ''
+                break
+            } else {
+                text += string.slice(0, index)
+                string = string.slice(index)
+                break
+            }
+        } while (string.length);
+        if (/\S/.test(text)) {
+            if (lastNode && lastNode.type === '#text') {
+                lastNode.text += text
+            } else {
+                lastNode = {
+                    type: '#text',
+                    nodeValue: text
+                }
+                addNode(lastNode)
+            }
+        }
 
 
     } while (string.length);
@@ -52,60 +78,66 @@ function lexer(string, opts) {
 }
 lexer(str)
 
-function parseCode(string) {
-    var state = 'start',
-        word = '',
-        needReset = false,
-        braceIndex = 1,
-        quote
+function oneObject(str) {
+    var obj = {}
+    str.split(",").forEach(_ => obj[_] = true)
+    return obj
+}
+var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr"),
+    function parseCode(string) {
+        var state = 'start',
+            word = '',
+            needReset = false,
+            braceIndex = 1,
+            quote
 
-    for (var i = 0, n = string.length; i < n; i++) {
-        var c = string[i]
+        for (var i = 0, n = string.length; i < n; i++) {
+            var c = string[i]
 
-        if (quote) {
-            if (c === quote) {
-                quote = ''
-            }
-        } else {
-            if (c === '"' || c === "'") {
-                word = ''
-                quote = c
-            } else if (c === '{') {
-                word = ''
-                braceIndex++
-            } else if (c === '}') {
-                word = ''
-                braceIndex--
-                if (braceIndex === 0) {
-                    return [string.slice(0, i), {
-                        type: 'jsx',
-                        value: string.slice(0, i)
-                    }]
+            if (quote) {
+                if (c === quote) {
+                    quote = ''
                 }
-            } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
-                word = ''
-            } else if (c === '<') {
-                if (word === '' || word === 'return' || word.slice(-2) == '=>') {
-                    if (/\<\w/.test(string.slice(i))) {
-
+            } else {
+                if (c === '"' || c === "'") {
+                    word = ''
+                    quote = c
+                } else if (c === '{') {
+                    word = ''
+                    braceIndex++
+                } else if (c === '}') {
+                    word = ''
+                    braceIndex--
+                    if (braceIndex === 0) {
+                        return [string.slice(0, i), {
+                            type: 'jsx',
+                            value: string.slice(0, i)
+                        }]
                     }
-                    ok = true
-                }
+                } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
+                    word = ''
+                } else if (c === '<') {
+                    if (word === '' || word === 'return' || word.slice(-2) == '=>') {
+                        if (/\<\w/.test(string.slice(i))) {
 
-            } else if (c !== '') {
-                if (needReset) {
-                    word = c
-                    needReset = false
-                } else {
-                    word += c
+                        }
+                        ok = true
+                    }
+
+                } else if (c !== '') {
+                    if (needReset) {
+                        word = c
+                        needReset = false
+                    } else {
+                        word += c
+                    }
+                } else if (c === ' ') {
+                    needReset = true
                 }
-            } else if (c === ' ') {
-                needReset = true
             }
         }
-    }
 
-}
+    }
 
 function getCloseTag(string) {
     if (string.indexOf("</") === 0) {
@@ -114,8 +146,7 @@ function getCloseTag(string) {
             var tag = match[1]
             string = string.slice(3 + tag.length)
             return [match[0], {
-                type: 'closeTag',
-                value: tag
+                type: tag
             }]
         }
     }
@@ -156,6 +187,9 @@ function getOpenTag(string) {
 
             var right = string.replace(left, '')
             if (right[0] === '>') {
+                if (voidTag[node.type]) {
+                    node.isVoidTag = true
+                }
                 left += '>'
             } else if (right.slice(0, 2) === '/>') {
                 left += '/>'
