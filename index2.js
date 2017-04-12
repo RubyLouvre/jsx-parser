@@ -1,6 +1,6 @@
 var str = `<div class="ddd" {ddd} id={dd}></div>`
 
-function lexer(string, opts) {
+function lexer(string, getOne) {
     var tokens = []
     var breakIndex = 9
     var stack = []
@@ -26,6 +26,9 @@ function lexer(string, opts) {
         if (arr) {
             string = string.replace(arr[0], '')
             stack.pop()
+            if (ret.length === 1 && getOne) {
+                return [string, ret[0]]
+            }
             lastNode = null
             continue
         }
@@ -34,8 +37,12 @@ function lexer(string, opts) {
             string = string.replace(arr[0], '')
             var node = arr[1]
             addNode(node)
-            if (!node.isVoidTag && !specalTag[node.type]) {
+            var selfClose = node.isVoidTag || specalTag[node.type]
+            if (!selfClose) { //放到这里可以添加孩子
                 stack.push(node)
+            }
+            if (selfClose && getOne) {
+                return [strng, node]
             }
             lastNode = node
             continue
@@ -63,24 +70,12 @@ function lexer(string, opts) {
                     addNode(node)
                     lastNode = false
                     string = string.replace(arr[0], '')
+
                 }
             }
         } else {
             addText(lastNode, text, addNode)
         }
-
-        /*  if (/\S/.test(text)) {
-              if (lastNode && lastNode.type === '#text') {
-                  lastNode.text += text
-              } else {
-                  lastNode = {
-                      type: '#text',
-                      nodeValue: text
-                  }
-                  addNode(lastNode)
-              }
-          }*/
-
 
     } while (string.length);
 
