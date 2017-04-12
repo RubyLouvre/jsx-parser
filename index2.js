@@ -34,7 +34,7 @@ function lexer(string, opts) {
             string = string.replace(arr[0], '')
             var node = arr[1]
             addNode(node)
-            if (!node.isVoidTag) {
+            if (!node.isVoidTag && !specalTag[node.type]) {
                 stack.push(node)
             }
             lastNode = node
@@ -44,30 +44,42 @@ function lexer(string, opts) {
         var text = ''
         do {
             const index = string.indexOf('<')
-            if (index === 0) {
+            if (index === 0) { //<div></div><div></div>
                 text += string.slice(0, 1)
                 string = string.slice(1)
-            } else if (index === -1) {
-                text += string
-                string = ''
-                break
-            } else {
-                text += string.slice(0, index)
-                string = string.slice(index)
+            } else { // <div></div>cccc，后面没有元素标签
                 break
             }
         } while (string.length);
-        if (/\S/.test(text)) {
-            if (lastNode && lastNode.type === '#text') {
-                lastNode.text += text
-            } else {
-                lastNode = {
-                    type: '#text',
-                    nodeValue: text
+
+        const index = string.indexOf('<')
+        const bindex = string.indexOf('{')
+        if (bindex !== -1) {
+            if (index === -1 || bindex < index) { // 如果文本节点中存在{}
+                addText(lastNode, text, addNode)
+                var arr = parseCode(string)
+                if (arr) {
+                    var node = arr[1]
+                    addNode(node)
+                    lastNode = false
+                    string = string.replace(arr[0], '')
                 }
-                addNode(lastNode)
             }
+        } else {
+            addText(lastNode, text, addNode)
         }
+
+        /*  if (/\S/.test(text)) {
+              if (lastNode && lastNode.type === '#text') {
+                  lastNode.text += text
+              } else {
+                  lastNode = {
+                      type: '#text',
+                      nodeValue: text
+                  }
+                  addNode(lastNode)
+              }
+          }*/
 
 
     } while (string.length);
@@ -75,6 +87,20 @@ function lexer(string, opts) {
     console.log(ret)
 
 
+}
+
+function addText(lastNode, text, addNode) {
+    if (/\S/.test(text)) {
+        if (lastNode && lastNode.type === '#text') {
+            lastNode.text += text
+        } else {
+            lastNode = {
+                type: '#text',
+                nodeValue: text
+            }
+            addNode(lastNode)
+        }
+    }
 }
 lexer(str)
 
@@ -155,25 +181,24 @@ function getCloseTag(string) {
 
 function getOpenTag(string) {
     if (string.indexOf("<") === 0) {
-
         var i = str.indexOf('<!--') //处理注释节点
         if (i === 0) {
             var l = str.indexOf('-->')
             if (l === -1) {
                 thow('注释节点没有闭合 ' + string.slice(0, 100))
             }
-
             var node = {
                 type: '#comment',
                 children: string.slice(4, i)
             }
             return [string.slice(0, i + 3), node]
         }
-        var match = string.match(/\<(\w[^\s\/\>]*)/)
+        var match = string.match(/\<(\w[^\s\/\>]*)/) //处理元素节点
         if (match) {
-            var left = match[0]
+            var left = match[0],
+                tag = match[1]
             var node = {
-                type: match[1],
+                type: tag,
                 props: {},
                 children: []
             }
@@ -194,12 +219,21 @@ function getOpenTag(string) {
             } else if (right.slice(0, 2) === '/>') {
                 left += '/>'
                 node.isVoidTag = true
+            } 
+            if (!node.isVoidTag && specalTag[tag]) {
+                var i = string.indexOf('</' + tag + '>')
+                left += string.slice(0, i + 3 + tag.length)
+                node.children.push({
+                    type: '#text',
+                    nodeValue: string.slice(0, i)
+                })
             }
 
             return [left, node]
         }
     }
 }
+var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
 var breakAttr = 0
 
 function getAttrs(string) {
@@ -256,7 +290,6 @@ function getAttrs(string) {
                 break
             case 'SpreadJSX':
             case 'JSX':
-
                 var arr = parseCode(string.slice(i), true)
                 i += arr[0].length
                 if (state === 'SpreadJSX') {
@@ -267,9 +300,7 @@ function getAttrs(string) {
                 attrName = attrValue = ''
                 state = 'AttrNameOrJSX'
                 console.log(props)
-
                 break
-
         }
 
     }
