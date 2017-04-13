@@ -11,9 +11,30 @@
         <p></p>
         <xmp>eee</xmp>
     </xmp>
-    <select>
-        <option><b>dddd</b><script>333</script><xmp>eee</xmp><template>eeeee</template></option>
-    </select>
+    <table>
+        <thead>
+            <tr>
+                <td>111</td>
+            </tr>
+            <tr>
+                <td>111</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>222</td>
+        </tr>
+        <tr>
+            <td>222</td>
+        </tr>
+        <tfoot>
+            <tr>
+                <td>333</td>
+            </tr>
+            <tr>
+                <td>444</td>
+            </tr>
+        </tfoot>
+    </table>
 </body>
 <script src='./index2.js'>
 </script>
@@ -26,7 +47,7 @@
     var str = '<!--ddd-->'
         //  console.log(JSXParser.parse(str))
 
-    var str = `<ul><li>111</li><li>222</li><li>333</li><li>444</li></ul>`
+    var str = `<option><b>dddd</b><script>333<\/script><xmp>eee</xmp><template>eeeee</template></option>`
     var a = JSXParser.parse(str)
     console.log('======')
     console.log(a)

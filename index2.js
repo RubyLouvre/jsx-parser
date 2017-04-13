@@ -1,7 +1,8 @@
-function lexer(string, getOne) {
+function lexer(string, getOne, skipEmptyText) {
     var tokens = []
     var breakIndex = 89
     var stack = []
+    var origString = string
     stack.last = function() {
         return stack[stack.length - 1]
     }
@@ -22,21 +23,28 @@ function lexer(string, getOne) {
         }
         var arr = getCloseTag(string)
         if (arr) { //处理关闭标签
+
             string = string.replace(arr[0], '')
             const node = stack.pop()
-            if (node.type === 'option') { //option里面不能包含标签
+                //处理下面两种特殊情况：
+                //1. option会自动移除元素节点，将它们的nodeValue组成新的文本节点
+                //2. table会将没有被thead, tbody, tfoot包起来的tr或文本节点，收集到一个新的tbody元素中
+            if (node.type === 'option') {
                 node.children = [{
                     type: '#text',
                     nodeValue: getText(node)
                 }]
-            }
-            if (ret.length === 1 && getOne) {
-                return [string, ret[0]]
+            } else if (node.type === 'table') {
+                insertTbody(node.children)
             }
             lastNode = null
+            if (getOne && ret.length === 1 && !stack.length) {
+                return [origString.slice(0, origString.length - string.length), ret[0]]
+            }
             continue
         }
-        var arr = getOpenTag(string)
+
+        var arr = getOpenTag(string, skipEmptyText)
         if (arr) {
             string = string.replace(arr[0], '')
             var node = arr[1]
@@ -45,8 +53,8 @@ function lexer(string, getOne) {
             if (!selfClose) { //放到这里可以添加孩子
                 stack.push(node)
             }
-            if (selfClose && getOne) {
-                return [strng, node]
+            if (getOne && selfClose && !stack.length) {
+                return [origString.slice(0, origString.length - string.length), node]
             }
             lastNode = node
             continue
@@ -54,19 +62,20 @@ function lexer(string, getOne) {
 
         var text = ''
         do {
+            //处理<div><<<<<<div>的情况
             const index = string.indexOf('<')
-            if (index === 0) { //<div></div><div></div>
+            if (index === 0) {
                 text += string.slice(0, 1)
                 string = string.slice(1)
-            } else { // <div></div>cccc，后面没有元素标签
+            } else {
                 break
             }
         } while (string.length);
-
+        //处理<div>{aaa}</div>,<div>xxx{aaa}xxx</div>,<div>xxx</div>{aaa}sss的情况
         const index = string.indexOf('<')
         const bindex = string.indexOf('{')
         if (bindex !== -1) {
-            if (index === -1 || bindex < index) { // 如果文本节点中存在{}
+            if (index === -1 || bindex < index) {
                 addText(lastNode, text, addNode)
                 var arr = parseCode(string)
                 if (arr) {
@@ -88,7 +97,6 @@ function lexer(string, getOne) {
         }
 
     } while (string.length);
-
     return ret
 
 
@@ -97,10 +105,15 @@ var JSXParser = {
     parse: parse
 }
 
-function parse(string, one) {
+function parse(string, one, skipEmptyText) {
     one = (one === void 666 || one === true)
-    var ret = lexer(string)
-    return one ? ret[0] : ret
+    skipEmptyText = (skipEmptyText === void 666 || skipEmptyText === true)
+
+    var ret = lexer(string, one, skipEmptyText)
+    if (one) {
+        return typeof ret[0] === 'string' ? ret[1] : ret[0]
+    }
+    return ret
 }
 
 function addText(lastNode, text, addNode) {
@@ -126,7 +139,7 @@ function oneObject(str) {
 var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
 var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
 var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
-
+    //它用于解析{}中的内容，如果遇到不匹配的}则返回
 function parseCode(string) {
     var state = 'start',
         word = '',
@@ -153,7 +166,7 @@ function parseCode(string) {
                 braceIndex--
                 if (braceIndex === 0) {
                     return [string.slice(0, i), {
-                        type: 'jsx',
+                        type: '#jsx',
                         value: string.slice(0, i)
                     }]
                 }
@@ -162,6 +175,8 @@ function parseCode(string) {
             } else if (c === '<') {
                 if (word === '' || word === 'return' || word.slice(-2) == '=>') {
                     if (/\<\w/.test(string.slice(i))) {
+                        var arr = lexer(string.slice(1), true, true)
+                        i += arr[0].length
 
                     }
                     ok = true
@@ -181,6 +196,30 @@ function parseCode(string) {
     }
 
 }
+
+function insertTbody(nodes) {
+    var tbody = false
+    for (var i = nodes.length - 1; i >= 0; i--) {
+        var node = nodes[i]
+        if (/^(tbody|thead|tfoot|#jsx)$/.test(node.type)) {
+            tbody = false
+            continue
+        }
+        if (!tbody) {
+            tbody = {
+                type: '#tbody',
+                props: {},
+                children: [node]
+            }
+            nodes.splice(i, 1)
+            nodes.splice(i, 0, tbody)
+        } else {
+            nodes.splice(i, 1)
+            tbody.children.unshift(node)
+        }
+    }
+}
+
 
 function getCloseTag(string) {
     if (string.indexOf("</") === 0) {
