@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/RubyLouvre/jsx-parser/issues"
   },
-  "homepage": "https://github.com/RubyLouvre/jsx-parser#readme"
+  "homepage": "https://github.com/RubyLouvre/jsx-parser#readme",
+  "devDependencies": {
+    "jasmine": "^2.5.3"
+  }
 }

@@ -1,8 +1,6 @@
-var str = `<div class="ddd" {ddd} id={dd}></div>`
-
 function lexer(string, getOne) {
     var tokens = []
-    var breakIndex = 9
+    var breakIndex = 89
     var stack = []
     stack.last = function() {
         return stack[stack.length - 1]
@@ -23,9 +21,15 @@ function lexer(string, getOne) {
             break
         }
         var arr = getCloseTag(string)
-        if (arr) {
+        if (arr) { //处理关闭标签
             string = string.replace(arr[0], '')
-            stack.pop()
+            const node = stack.pop()
+            if (node.type === 'option') { //option里面不能包含标签
+                node.children = [{
+                    type: '#text',
+                    nodeValue: getText(node)
+                }]
+            }
             if (ret.length === 1 && getOne) {
                 return [string, ret[0]]
             }
@@ -70,18 +74,33 @@ function lexer(string, getOne) {
                     addNode(node)
                     lastNode = false
                     string = string.replace(arr[0], '')
-
                 }
             }
         } else {
-            addText(lastNode, text, addNode)
+            if (index === -1) {
+                text = string
+                addText(lastNode, text, addNode)
+                string = ''
+            } else {
+                addText(lastNode, text + string.slice(0, index), addNode)
+                string = string.slice(index)
+            }
         }
 
     } while (string.length);
 
-    console.log(ret)
+    return ret
 
 
+}
+var JSXParser = {
+    parse: parse
+}
+
+function parse(string, one) {
+    one = (one === void 666 || one === true)
+    var ret = lexer(string)
+    return one ? ret[0] : ret
 }
 
 function addText(lastNode, text, addNode) {
@@ -97,68 +116,71 @@ function addText(lastNode, text, addNode) {
         }
     }
 }
-lexer(str)
+//lexer(str)
 
 function oneObject(str) {
     var obj = {}
     str.split(",").forEach(_ => obj[_] = true)
     return obj
 }
-var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr"),
-    function parseCode(string) {
-        var state = 'start',
-            word = '',
-            needReset = false,
-            braceIndex = 1,
-            quote
+var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
+var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
+var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
 
-        for (var i = 0, n = string.length; i < n; i++) {
-            var c = string[i]
+function parseCode(string) {
+    var state = 'start',
+        word = '',
+        needReset = false,
+        braceIndex = 1,
+        quote
 
-            if (quote) {
-                if (c === quote) {
-                    quote = ''
+    for (var i = 0, n = string.length; i < n; i++) {
+        var c = string[i]
+
+        if (quote) {
+            if (c === quote) {
+                quote = ''
+            }
+        } else {
+            if (c === '"' || c === "'") {
+                word = ''
+                quote = c
+            } else if (c === '{') {
+                word = ''
+                braceIndex++
+            } else if (c === '}') {
+                word = ''
+                braceIndex--
+                if (braceIndex === 0) {
+                    return [string.slice(0, i), {
+                        type: 'jsx',
+                        value: string.slice(0, i)
+                    }]
                 }
-            } else {
-                if (c === '"' || c === "'") {
-                    word = ''
-                    quote = c
-                } else if (c === '{') {
-                    word = ''
-                    braceIndex++
-                } else if (c === '}') {
-                    word = ''
-                    braceIndex--
-                    if (braceIndex === 0) {
-                        return [string.slice(0, i), {
-                            type: 'jsx',
-                            value: string.slice(0, i)
-                        }]
-                    }
-                } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
-                    word = ''
-                } else if (c === '<') {
-                    if (word === '' || word === 'return' || word.slice(-2) == '=>') {
-                        if (/\<\w/.test(string.slice(i))) {
+            } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
+                word = ''
+            } else if (c === '<') {
+                if (word === '' || word === 'return' || word.slice(-2) == '=>') {
+                    if (/\<\w/.test(string.slice(i))) {
 
-                        }
-                        ok = true
                     }
-
-                } else if (c !== '') {
-                    if (needReset) {
-                        word = c
-                        needReset = false
-                    } else {
-                        word += c
-                    }
-                } else if (c === ' ') {
-                    needReset = true
+                    ok = true
                 }
+
+            } else if (c !== '') {
+                if (needReset) {
+                    word = c
+                    needReset = false
+                } else {
+                    word += c
+                }
+            } else if (c === ' ') {
+                needReset = true
             }
         }
-
     }
+
+}
 
 function getCloseTag(string) {
     if (string.indexOf("</") === 0) {
@@ -176,21 +198,22 @@ function getCloseTag(string) {
 
 function getOpenTag(string) {
     if (string.indexOf("<") === 0) {
-        var i = str.indexOf('<!--') //处理注释节点
+        var i = string.indexOf('<!--') //处理注释节点
         if (i === 0) {
-            var l = str.indexOf('-->')
+            var l = string.indexOf('-->')
             if (l === -1) {
                 thow('注释节点没有闭合 ' + string.slice(0, 100))
             }
             var node = {
                 type: '#comment',
-                children: string.slice(4, i)
+                nodeValue: string.slice(4, l)
             }
-            return [string.slice(0, i + 3), node]
+
+            return [string.slice(0, l + 3), node]
         }
         var match = string.match(/\<(\w[^\s\/\>]*)/) //处理元素节点
         if (match) {
-            var left = match[0],
+            var leftContent = match[0],
                 tag = match[1]
             var node = {
                 type: tag,
@@ -198,38 +221,53 @@ function getOpenTag(string) {
                 children: []
             }
 
-            //处理属性
-            var arr = getAttrs(string.replace(left, ''))
+            string = string.replace(leftContent, '') //去掉标签名(rightContent)
+            var arr = getAttrs(string) //处理属性
             if (arr) {
                 node.props = arr[1]
-                left += arr[0]
+                string = string.replace(arr[0], '')
+                leftContent += arr[0]
             }
 
-            var right = string.replace(left, '')
-            if (right[0] === '>') {
+            if (string[0] === '>') { //处理开标签的边界符
+                leftContent += '>'
+                string = string.slice(1)
                 if (voidTag[node.type]) {
                     node.isVoidTag = true
                 }
-                left += '>'
-            } else if (right.slice(0, 2) === '/>') {
-                left += '/>'
+            } else if (string.slice(0, 2) === '/>') { //处理开标签的边界符
+                leftContent += '/>'
+                string = string.slice(2)
                 node.isVoidTag = true
             } 
-            if (!node.isVoidTag && specalTag[tag]) {
-                var i = string.indexOf('</' + tag + '>')
-                left += string.slice(0, i + 3 + tag.length)
+
+            if (!node.isVoidTag && specalTag[tag]) { //如果是script, style, xmp等元素
+                var closeTag = '</' + tag + '>'
+                var j = string.indexOf(closeTag)
+                var nodeValue = string.slice(0, j)
+                leftContent += nodeValue + closeTag
                 node.children.push({
                     type: '#text',
-                    nodeValue: string.slice(0, i)
+                    nodeValue: nodeValue
                 })
             }
 
-            return [left, node]
+            return [leftContent, node]
         }
     }
 }
-var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
-var breakAttr = 0
+
+function getText(node) {
+    var ret = ''
+    node.children.forEach(function(el) {
+        if (el.type === '#text') {
+            ret += el.nodeValue
+        } else if (el.children && !hiddenTag[el.type]) {
+            ret += getText(el)
+        }
+    })
+    return ret
+}
 
 function getAttrs(string) {
     var state = 'AttrNameOrJSX',
@@ -243,7 +281,6 @@ function getAttrs(string) {
         switch (state) {
             case 'AttrNameOrJSX':
                 if (c === '/' || c === '>') {
-                    console.log(string.slice(0, i))
                     return [string.slice(0, i), props]
                 }
                 if (c === ' ') {
@@ -294,7 +331,6 @@ function getAttrs(string) {
                 }
                 attrName = attrValue = ''
                 state = 'AttrNameOrJSX'
-                console.log(props)
                 break
         }
 
