@@ -186,7 +186,7 @@ describe("jsx parser", function() {
                 },
                 children: []
             })
-            expect(parse('<div id={aa} title={ bb } class="className" ></div>')).toEqual({
+            expect(parse('<div id={aa} title={ bb } {var a = 111} class="className" ></div>')).toEqual({
                 type: 'div',
                 props: {
                     id: {
@@ -196,6 +196,10 @@ describe("jsx parser", function() {
                     title: {
                         type: '#jsx',
                         nodeValue: ' bb '
+                    },
+                    SpreadJSX: {
+                        type: '#jsx',
+                        nodeValue: 'var a = 111'
                     },
                     'class': 'className'
                 },
