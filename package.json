@@ -21,6 +21,10 @@
   },
   "homepage": "https://github.com/RubyLouvre/jsx-parser#readme",
   "devDependencies": {
-    "jasmine": "^2.5.3"
+    "jasmine": "^2.5.3",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-jasmine-diff-reporter": "^1.0.0",
+    "karma-spec-reporter": "0.0.31"
   }
 }

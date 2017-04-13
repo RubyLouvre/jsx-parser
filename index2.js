@@ -1,4 +1,4 @@
-function lexer(string, getOne, skipEmptyText) {
+function lexer(string, getOne) {
     var tokens = []
     var breakIndex = 89
     var stack = []
@@ -44,7 +44,7 @@ function lexer(string, getOne, skipEmptyText) {
             continue
         }
 
-        var arr = getOpenTag(string, skipEmptyText)
+        var arr = getOpenTag(string)
         if (arr) {
             string = string.replace(arr[0], '')
             var node = arr[1]
@@ -107,9 +107,8 @@ var JSXParser = {
 
 function parse(string, one, skipEmptyText) {
     one = (one === void 666 || one === true)
-    skipEmptyText = (skipEmptyText === void 666 || skipEmptyText === true)
 
-    var ret = lexer(string, one, skipEmptyText)
+    var ret = lexer(string, one)
     if (one) {
         return typeof ret[0] === 'string' ? ret[1] : ret[0]
     }
@@ -167,7 +166,7 @@ function parseCode(string) {
                 if (braceIndex === 0) {
                     return [string.slice(0, i), {
                         type: '#jsx',
-                        value: string.slice(0, i)
+                        nodeValue: string.slice(0, i)
                     }]
                 }
             } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
@@ -207,7 +206,7 @@ function insertTbody(nodes) {
         }
         if (!tbody) {
             tbody = {
-                type: '#tbody',
+                type: 'tbody',
                 props: {},
                 children: [node]
             }
