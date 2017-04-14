@@ -394,7 +394,9 @@ function getAttrs(string) {
                 }
                 break
             case 'SpreadJSX':
+                i += 3
             case 'JSX':
+
                 var arr = parseCode(string.slice(i))
                 i += arr[0].length
 

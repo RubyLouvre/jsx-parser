@@ -38,7 +38,7 @@ describe("jsx parser", function() {
                     spreadAttribute: {
                         type: '#jsx',
                         nodeValue: [{
-                            nodeValue: '...[',
+                            nodeValue: '[',
                             type: '#jsx'
                         }, {
                             type: 'div',
@@ -340,7 +340,7 @@ describe("jsx parser", function() {
                     }]
                 }]
             })
-            expect(parse('<div id={aa} title={ bb } {var a = 111} class="className" ></div>')).toEqual({
+            expect(parse('<div id={aa} title={ bb } {...{a:1}} class="className" ></div>')).toEqual({
                 type: 'div',
                 props: {
                     id: {
@@ -353,7 +353,7 @@ describe("jsx parser", function() {
                     },
                     spreadAttribute: {
                         type: '#jsx',
-                        nodeValue: 'var a = 111'
+                        nodeValue: '{a:1}'
                     },
                     'class': 'className'
                 },
