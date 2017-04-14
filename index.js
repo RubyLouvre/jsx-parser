@@ -7,16 +7,26 @@ var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,
 var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
 var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
 
-var JSXParser = {
-        parse: parse
+var JSXParser = function(a, f) {
+    if (!(this instanceof JSXParser)) {
+        return parse(a, f)
     }
-    /**
-     * 
-     * 
-     * @param {any} string 
-     * @param {any} getOne 只返回一个节点
-     * @returns 
-     */
+    this.input = a
+    this.getOne = f
+}
+JSXParser.prototype = {
+    parse: function() {
+        return parse(this.input, this.getOne)
+    }
+}
+
+/**
+ * 
+ * 
+ * @param {any} string 
+ * @param {any} getOne 只返回一个节点
+ * @returns 
+ */
 function parse(string, getOne) {
     getOne = (getOne === void 666 || getOne === true)
     var ret = lexer(string, getOne)

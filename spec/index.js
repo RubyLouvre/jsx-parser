@@ -1,5 +1,7 @@
 describe("jsx parser", function() {
-    var parse = JSXParser.parse
+    var parse = function(a, f) {
+        return (new JSXParser(a, f)).parse()
+    }
     describe("简单的类型", function() {
         it('test', function() {
             expect(parse('<div></div>')).toEqual({
