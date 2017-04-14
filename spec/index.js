@@ -35,18 +35,21 @@ describe("jsx parser", function() {
             expect(parse('<div {...[<div/>]} />')).toEqual({
                 type: 'div',
                 props: {
-                    spreadAttribute: [{
-                        nodeValue: '...[',
-                        type: '#jsx'
-                    }, {
-                        type: 'div',
-                        props: {},
-                        isVoidTag: true,
-                        children: []
-                    }, {
-                        nodeValue: ']',
-                        type: '#jsx'
-                    }]
+                    spreadAttribute: {
+                        type: '#jsx',
+                        nodeValue: [{
+                            nodeValue: '...[',
+                            type: '#jsx'
+                        }, {
+                            type: 'div',
+                            props: {},
+                            isVoidTag: true,
+                            children: []
+                        }, {
+                            nodeValue: ']',
+                            type: '#jsx'
+                        }]
+                    }
                 },
                 isVoidTag: true,
                 children: []
@@ -348,7 +351,7 @@ describe("jsx parser", function() {
                         type: '#jsx',
                         nodeValue: ' bb '
                     },
-                    SpreadJSX: {
+                    spreadAttribute: {
                         type: '#jsx',
                         nodeValue: 'var a = 111'
                     },
