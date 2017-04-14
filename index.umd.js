@@ -402,7 +402,7 @@
                     var arr = parseCode(string.slice(i))
                     i += arr[0].length
 
-                    props[state === 'SpreadJSX' ? 'SpreadJSX' : attrName] = makeJSX(arr[1])
+                    props[state === 'SpreadJSX' ? 'spreadAttribute' : attrName] = makeJSX(arr[1])
                     attrName = attrValue = ''
                     state = 'AttrNameOrJSX'
                     break
