@@ -15,7 +15,7 @@ module.exports = function(config) {
 
         // list of files / patterns to load in the browser
         files: [
-            "index2.js",
+            "index.umd.js",
             "spec/**/*.js"
         ],
 
