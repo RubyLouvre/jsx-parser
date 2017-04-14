@@ -1,8 +1,37 @@
+function oneObject(str) {
+    var obj = {}
+    str.split(",").forEach(_ => obj[_] = true)
+    return obj
+}
+var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
+var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
+var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
+var JSXParser = {
+        parse: parse
+    }
+    /**
+     * 
+     * 
+     * @param {any} string 
+     * @param {any} getOne 只返回一个节点
+     * @returns 
+     */
+function parse(string, getOne) {
+    getOne = (getOne === void 666 || getOne === true)
+    var ret = lexer(string, getOne)
+    if (getOne) {
+        return typeof ret[0] === 'string' ? ret[1] : ret[0]
+    }
+    return ret
+}
+
 function lexer(string, getOne) {
     var tokens = []
-    var breakIndex = 89
+    var breakIndex = 994
     var stack = []
     var origString = string
+    var origLength = string.length
+
     stack.last = function() {
         return stack[stack.length - 1]
     }
@@ -16,6 +45,7 @@ function lexer(string, getOne) {
             ret.push(node)
         }
     }
+
     var lastNode
     do {
         if (--breakIndex === 0) {
@@ -39,7 +69,7 @@ function lexer(string, getOne) {
             }
             lastNode = null
             if (getOne && ret.length === 1 && !stack.length) {
-                return [origString.slice(0, origString.length - string.length), ret[0]]
+                return [origString.slice(0, origLength - string.length), ret[0]]
             }
             continue
         }
@@ -54,7 +84,7 @@ function lexer(string, getOne) {
                 stack.push(node)
             }
             if (getOne && selfClose && !stack.length) {
-                return [origString.slice(0, origString.length - string.length), node]
+                return [origString.slice(0, origLength - string.length), node]
             }
             lastNode = node
             continue
@@ -101,19 +131,7 @@ function lexer(string, getOne) {
 
 
 }
-var JSXParser = {
-    parse: parse
-}
 
-function parse(string, one, skipEmptyText) {
-    one = (one === void 666 || one === true)
-
-    var ret = lexer(string, one)
-    if (one) {
-        return typeof ret[0] === 'string' ? ret[1] : ret[0]
-    }
-    return ret
-}
 
 function addText(lastNode, text, addNode) {
     if (/\S/.test(text)) {
@@ -128,27 +146,16 @@ function addText(lastNode, text, addNode) {
         }
     }
 }
-//lexer(str)
 
-function oneObject(str) {
-    var obj = {}
-    str.split(",").forEach(_ => obj[_] = true)
-    return obj
-}
-var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
-var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
-var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
-    //它用于解析{}中的内容，如果遇到不匹配的}则返回
-function parseCode(string) {
-    var state = 'start',
-        word = '',
-        needReset = false,
+//它用于解析{}中的内容，如果遇到不匹配的}则返回, 根据标签切割里面的内容 
+function parseCode(string) { // <div id={ function(){<div/>} }>
+    var word = '', //用于匹配前面的单词
         braceIndex = 1,
+        codeIndex = 0,
+        nodes = [],
         quote
-
     for (var i = 0, n = string.length; i < n; i++) {
         var c = string[i]
-
         if (quote) {
             if (c === quote) {
                 quote = ''
@@ -164,36 +171,38 @@ function parseCode(string) {
                 word = ''
                 braceIndex--
                 if (braceIndex === 0) {
+                    var nodeValue = string.slice(codeIndex, i)
+                    if (/\S/.test(nodeValue)) { //将{前面的东西放进去
+                        nodes.push({
+                            type: '#code',
+                            nodeValue: nodeValue
+                        })
+                    }
                     return [string.slice(0, i), {
                         type: '#jsx',
-                        nodeValue: string.slice(0, i)
+                        nodeValue: nodes
                     }]
                 }
             } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
                 word = ''
             } else if (c === '<') {
-                if (word === '' || word === 'return' || word.slice(-2) == '=>') {
-                    if (/\<\w/.test(string.slice(i))) {
-                        var arr = lexer(string.slice(1), true, true)
-                        i += arr[0].length
-
-                    }
-                    ok = true
+                var chunkString = string.slice(i)
+                if ((word === '' || word === 'return' || word.slice(-2) == '=>') && /\<\w/.test(chunkString)) {
+                    nodes.push({
+                        type: '#code',
+                        nodeValue: string.slice(codeIndex, i)
+                    })
+                    var chunk = lexer(chunkString, true)
+                    nodes.push(chunk[1])
+                    i += (chunk[0].length - 1) //因为已经包含了<, 需要减1
+                    codeIndex = i + 1
                 }
-
-            } else if (c !== '') {
-                if (needReset) {
-                    word = c
-                    needReset = false
-                } else {
-                    word += c
-                }
-            } else if (c === ' ') {
-                needReset = true
-            }
+                word = ''
+            } else if (c !== ' ') { //非空字符
+                word += c
+            } //空字符
         }
     }
-
 }
 
 function insertTbody(nodes) {
@@ -360,19 +369,16 @@ function getAttrs(string) {
                 break
             case 'SpreadJSX':
             case 'JSX':
-                var arr = parseCode(string.slice(i), true)
+                var arr = parseCode(string.slice(i))
                 i += arr[0].length
-                if (state === 'SpreadJSX') {
-                    props['SpreadJSX'] = arr[1]
-                } else {
-                    props[attrName] = arr[1]
-                }
+                var jscode = arr[1]
+
+                jscode = jscode.length === 1 && jscode[0].type === '#code' ? jscode.nodeValue : jscode
+                props[state === 'SpreadJSX' ? 'SpreadJSX' : attrName] = jscode
                 attrName = attrValue = ''
                 state = 'AttrNameOrJSX'
                 break
         }
-
     }
-
     throw '必须关闭标签'
 }
