@@ -48,7 +48,7 @@
         //  console.log(JSXParser.parse(str))
 
     var str = '<div id={function(){ return <div/> }} class="className"><p>xxx</p></div>'
-    var str = `<div id={aa} title={ bb } {var a = 111} class="className" ></div>`
+    var str = `<div >xxx{111}xxx{222}</div>`
     var a = JSXParser.parse(str)
     console.log('======')
     console.log(a)

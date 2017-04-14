@@ -27,7 +27,38 @@ describe("jsx parser", function() {
                 }
             ])
         })
-    });
+    })
+    describe("文本节点中的JSX", function() {
+        it("test", function() {
+
+            expect(parse('<div >{111}</div>')).toEqual({
+                type: 'div',
+                props: {},
+                children: [{
+                    type: '#jsx',
+                    nodeValue: '111'
+                }]
+            })
+            expect(parse('<div >xxx{111}xxx{222}</div>')).toEqual({
+                type: 'div',
+                props: {},
+                children: [{
+                    type: '#text',
+                    nodeValue: 'xxx'
+                }, {
+                    type: '#jsx',
+                    nodeValue: '111'
+                }, {
+                    type: '#text',
+                    nodeValue: 'xxx'
+                }, {
+                    type: '#jsx',
+                    nodeValue: '222'
+                }]
+            })
+        })
+
+    })
     describe("自闭合标签", function() {
         it("test", function() {
 

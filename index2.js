@@ -53,7 +53,6 @@ function lexer(string, getOne) {
         }
         var arr = getCloseTag(string)
         if (arr) { //处理关闭标签
-
             string = string.replace(arr[0], '')
             const node = stack.pop()
                 //处理下面两种特殊情况：
@@ -106,14 +105,16 @@ function lexer(string, getOne) {
         const bindex = string.indexOf('{')
         if (bindex !== -1) {
             if (index === -1 || bindex < index) {
-                addText(lastNode, text, addNode)
-                var arr = parseCode(string)
-                if (arr) {
-                    var node = arr[1]
-                    addNode(node)
-                    lastNode = false
-                    string = string.replace(arr[0], '')
+                if (bindex !== 0) {
+                    text += string.slice(0, bindex)
+                    string = string.slice(bindex)
                 }
+                addText(lastNode, text, addNode)
+                string = string.slice(1) //去掉前面{
+                var arr = parseCode(string)
+                addNode(makeJSX(arr[1]))
+                lastNode = false
+                string = string.slice(arr[0].length + 1) //去掉后面的}
             }
         } else {
             if (index === -1) {
@@ -368,13 +369,16 @@ function getAttrs(string) {
             case 'JSX':
                 var arr = parseCode(string.slice(i))
                 i += arr[0].length
-                var JSXNode = arr[1]
-                var JSXValue = JSXNode.length === 1 && JSXNode[0].type === '#jsx' ? JSXNode[0] : { type: '#jsx', nodeValue: JSXNode }
-                props[state === 'SpreadJSX' ? 'SpreadJSX' : attrName] = JSXValue
+
+                props[state === 'SpreadJSX' ? 'SpreadJSX' : attrName] = makeJSX(arr[1])
                 attrName = attrValue = ''
                 state = 'AttrNameOrJSX'
                 break
         }
     }
     throw '必须关闭标签'
+}
+
+function makeJSX(JSXNode) {
+    return JSXNode.length === 1 && JSXNode[0].type === '#jsx' ? JSXNode[0] : { type: '#jsx', nodeValue: JSXNode }
 }
