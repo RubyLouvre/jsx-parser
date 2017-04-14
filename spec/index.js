@@ -186,6 +186,28 @@ describe("jsx parser", function() {
                 },
                 children: []
             })
+            expect(parse('<div id={function(){ return <div/> }} class="className"><p>xxx</p></div>')).toEqual({
+                type: 'div',
+                props: {
+                    id: {
+                        type: '#jsx',
+                        nodeValue: [
+                            { type: '#jsx', nodeValue: 'function(){ return ' },
+                            { type: 'div', props: {}, children: [], isVoidTag: true },
+                            { type: '#jsx', nodeValue: ' }' }
+                        ]
+                    },
+                    'class': 'className'
+                },
+                children: [{
+                    type: "p",
+                    props: {},
+                    children: [{
+                        type: '#text',
+                        nodeValue: 'xxx'
+                    }]
+                }]
+            })
             expect(parse('<div id={aa} title={ bb } {var a = 111} class="className" ></div>')).toEqual({
                 type: 'div',
                 props: {
