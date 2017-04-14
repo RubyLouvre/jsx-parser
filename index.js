@@ -202,7 +202,7 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                         }
                     } while (--index >= 0);
                     var chunkString = string.slice(i)
-                    if (word === '' || /(=>|return)$/.test(word) && /\<\w/.test(chunkString)) {
+                    if (word === '' || /(=>|return|\{|\(|\[|\,)$/.test(word) && /\<\w/.test(chunkString)) {
                         collectJSX(string, codeIndex, i, nodes)
                         var chunk = lexer(chunkString, true)
                         nodes.push(chunk[1])
