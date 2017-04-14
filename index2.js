@@ -174,14 +174,11 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                     var nodeValue = string.slice(codeIndex, i)
                     if (/\S/.test(nodeValue)) { //将{前面的东西放进去
                         nodes.push({
-                            type: '#code',
+                            type: '#jsx',
                             nodeValue: nodeValue
                         })
                     }
-                    return [string.slice(0, i), {
-                        type: '#jsx',
-                        nodeValue: nodes
-                    }]
+                    return [string.slice(0, i), nodes]
                 }
             } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
                 word = ''
@@ -189,7 +186,7 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                 var chunkString = string.slice(i)
                 if ((word === '' || word === 'return' || word.slice(-2) == '=>') && /\<\w/.test(chunkString)) {
                     nodes.push({
-                        type: '#code',
+                        type: '#jsx',
                         nodeValue: string.slice(codeIndex, i)
                     })
                     var chunk = lexer(chunkString, true)
@@ -371,10 +368,9 @@ function getAttrs(string) {
             case 'JSX':
                 var arr = parseCode(string.slice(i))
                 i += arr[0].length
-                var jscode = arr[1]
-
-                jscode = jscode.length === 1 && jscode[0].type === '#code' ? jscode.nodeValue : jscode
-                props[state === 'SpreadJSX' ? 'SpreadJSX' : attrName] = jscode
+                var JSXNode = arr[1]
+                var JSXValue = JSXNode.length === 1 && JSXNode[0].type === '#jsx' ? JSXNode[0] : { type: '#jsx', nodeValue: JSXNode }
+                props[state === 'SpreadJSX' ? 'SpreadJSX' : attrName] = JSXValue
                 attrName = attrValue = ''
                 state = 'AttrNameOrJSX'
                 break
