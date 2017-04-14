@@ -6,6 +6,7 @@ function oneObject(str) {
 var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
 var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
 var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
+
 var JSXParser = {
         parse: parse
     }
@@ -27,7 +28,7 @@ function parse(string, getOne) {
 
 function lexer(string, getOne) {
     var tokens = []
-    var breakIndex = 994
+    var breakIndex = 120
     var stack = []
     var origString = string
     var origLength = string.length
@@ -52,6 +53,7 @@ function lexer(string, getOne) {
             break
         }
         var arr = getCloseTag(string)
+
         if (arr) { //处理关闭标签
             string = string.replace(arr[0], '')
             const node = stack.pop()
@@ -78,7 +80,7 @@ function lexer(string, getOne) {
             string = string.replace(arr[0], '')
             var node = arr[1]
             addNode(node)
-            var selfClose = node.isVoidTag || specalTag[node.type]
+            var selfClose = !!(node.isVoidTag || specalTag[node.type])
             if (!selfClose) { //放到这里可以添加孩子
                 stack.push(node)
             }
@@ -96,41 +98,71 @@ function lexer(string, getOne) {
             if (index === 0) {
                 text += string.slice(0, 1)
                 string = string.slice(1)
+
             } else {
                 break
             }
         } while (string.length);
         //处理<div>{aaa}</div>,<div>xxx{aaa}xxx</div>,<div>xxx</div>{aaa}sss的情况
-        const index = string.indexOf('<')
-        const bindex = string.indexOf('{')
-        if (bindex !== -1) {
-            if (index === -1 || bindex < index) {
-                if (bindex !== 0) {
-                    text += string.slice(0, bindex)
-                    string = string.slice(bindex)
-                }
-                addText(lastNode, text, addNode)
-                string = string.slice(1) //去掉前面{
-                var arr = parseCode(string)
-                addNode(makeJSX(arr[1]))
-                lastNode = false
-                string = string.slice(arr[0].length + 1) //去掉后面的}
+        const index = string.indexOf('<') //判定它后面是否存在标签
+        const bindex = string.indexOf('{') //判定它后面是否存在jsx
+        const aindex = string.indexOf('}')
+
+        let hasJSX = (bindex < aindex) && (index === -1 || bindex < index)
+        if (hasJSX) {
+            if (bindex !== 0) { // 收集jsx之前的文本节点
+                text += string.slice(0, bindex)
+                string = string.slice(bindex)
             }
+            addText(lastNode, text, addNode)
+            string = string.slice(1) //去掉前面{
+            var arr = parseCode(string)
+            addNode(makeJSX(arr[1]))
+            lastNode = false
+            string = string.slice(arr[0].length + 1) //去掉后面的}
         } else {
             if (index === -1) {
                 text = string
-                addText(lastNode, text, addNode)
                 string = ''
             } else {
-                addText(lastNode, text + string.slice(0, index), addNode)
+                text += string.slice(0, index)
                 string = string.slice(index)
             }
+            addText(lastNode, text, addNode)
         }
+
+
+
+        /* console.log('index and bindex', index, bindex)
+         if (bindex !== -1) {
+             if (index === -1 || bindex < index) {
+                 if (bindex !== 0) {
+                     text += string.slice(0, bindex)
+                     string = string.slice(bindex)
+                 }
+                 addText(lastNode, text, addNode)
+                 string = string.slice(1) //去掉前面{
+                 console.log(string)
+                 var arr = parseCode(string)
+                 console.log(arr)
+                 addNode(makeJSX(arr[1]))
+                 lastNode = false
+                 string = string.slice(arr[0].length + 1) //去掉后面的}
+             }
+         } else {
+             if (index === -1) {
+                 text = string
+                 addText(lastNode, text, addNode)
+                 string = ''
+             } else {
+                 console.log(string)
+                 addText(lastNode, text + string.slice(0, index), addNode)
+                 string = string.slice(index)
+             }
+         }*/
 
     } while (string.length);
     return ret
-
-
 }
 
 
@@ -154,52 +186,66 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
         braceIndex = 1,
         codeIndex = 0,
         nodes = [],
-        quote
+        quote,
+        state = 'code'
     for (var i = 0, n = string.length; i < n; i++) {
         var c = string[i]
-        if (quote) {
-            if (c === quote) {
-                quote = ''
-            }
-        } else {
-            if (c === '"' || c === "'") {
-                word = ''
-                quote = c
-            } else if (c === '{') {
-                word = ''
-                braceIndex++
-            } else if (c === '}') {
-                word = ''
-                braceIndex--
-                if (braceIndex === 0) {
-                    var nodeValue = string.slice(codeIndex, i)
-                    if (/\S/.test(nodeValue)) { //将{前面的东西放进去
-                        nodes.push({
-                            type: '#jsx',
-                            nodeValue: nodeValue
-                        })
+        switch (state) {
+            case 'code':
+                if (c === '"' || c === "'") {
+                    state = 'string'
+                    quote = c
+                } else if (c === '{') {
+                    braceIndex++
+                } else if (c === '}') {
+                    braceIndex--
+                    if (braceIndex === 0) {
+                        collectJSX(string, codeIndex, i, nodes)
+                        return [string.slice(0, i), nodes]
                     }
-                    return [string.slice(0, i), nodes]
+                } else if (c === '<') {
+                    var word = '',
+                        empty = true ,
+                        index = i - 1
+                    do {
+                        c = string.charAt(index)
+                        if (empty && c === ' ') {
+                            continue
+                        }
+                        if (c === ' ') {
+                            break
+                        }
+                        empty = false
+                        word = c + word
+
+                    } while (--index >= 0);
+                    var chunkString = string.slice(i)
+                    if (word === '' || /(=>|return)$/.test(word) && /\<\w/.test(chunkString)) {
+                        collectJSX(string, codeIndex, i, nodes)
+                        var chunk = lexer(chunkString, true)
+                        nodes.push(chunk[1])
+                        i += (chunk[0].length - 1) //因为已经包含了<, 需要减1
+                        codeIndex = i + 1
+                    }
+
                 }
-            } else if (c === '[' || c === ']' || c === '(' || c === ')' || c === ',') {
-                word = ''
-            } else if (c === '<') {
-                var chunkString = string.slice(i)
-                if ((word === '' || word === 'return' || word.slice(-2) == '=>') && /\<\w/.test(chunkString)) {
-                    nodes.push({
-                        type: '#jsx',
-                        nodeValue: string.slice(codeIndex, i)
-                    })
-                    var chunk = lexer(chunkString, true)
-                    nodes.push(chunk[1])
-                    i += (chunk[0].length - 1) //因为已经包含了<, 需要减1
-                    codeIndex = i + 1
+                break
+            case 'string':
+                if (c === quote) {
+                    state = 'code'
                 }
-                word = ''
-            } else if (c !== ' ') { //非空字符
-                word += c
-            } //空字符
+                break
         }
+    }
+}
+
+function collectJSX(string, codeIndex, i, nodes) {
+    var nodeValue = string.slice(codeIndex, i)
+    if (/\S/.test(nodeValue)) { //将{前面的东西放进去
+        nodes.push({
+            type: '#jsx',
+            nodeValue: nodeValue
+        })
     }
 }
 

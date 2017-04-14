@@ -56,6 +56,34 @@ describe("jsx parser", function() {
                     nodeValue: '222'
                 }]
             })
+
+            expect(parse('<div >xxx{function(){return <div id={aaa}>111</div>}}xxx{222}</div>')).toEqual({
+                type: 'div',
+                props: {},
+                children: [{
+                    type: '#text',
+                    nodeValue: 'xxx'
+                }, {
+                    type: '#jsx',
+                    nodeValue: [
+                        { type: '#jsx', nodeValue: 'function(){return ' },
+                        {
+                            type: 'div',
+                            props: {
+                                id: { type: '#jsx', nodeValue: 'aaa' }
+                            },
+                            children: [{ type: '#text', nodeValue: '111' }]
+                        },
+                        { type: '#jsx', nodeValue: '}' },
+                    ]
+                }, {
+                    type: '#text',
+                    nodeValue: 'xxx'
+                }, {
+                    type: '#jsx',
+                    nodeValue: '222'
+                }]
+            })
         })
 
     })
@@ -145,6 +173,51 @@ describe("jsx parser", function() {
                         type: '#text',
                         nodeValue: '444'
                     }]
+                }]
+            })
+        })
+    })
+    describe("jsx套jsx", function() {
+        it("test", function() {
+            var str = `<div id="复杂结构">xxx{function(){return <div id={aaa}>111</div>}}xxx{222}</div>`
+            expect(parse(str)).toEqual({
+                type: 'div',
+                props: {
+                    id: '复杂结构'
+                },
+                children: [{
+                    type: '#text',
+                    nodeValue: 'xxx'
+                }, {
+                    type: '#jsx',
+                    nodeValue: [{
+                            type: '#jsx',
+                            nodeValue: 'function(){return '
+                        },
+                        {
+                            type: 'div',
+                            props: {
+                                id: {
+                                    type: '#jsx',
+                                    nodeValue: 'aaa'
+                                }
+                            },
+                            children: [{
+                                type: '#text',
+                                nodeValue: '111'
+                            }]
+                        },
+                        {
+                            type: '#jsx',
+                            nodeValue: '}'
+                        }
+                    ]
+                }, {
+                    type: '#text',
+                    nodeValue: 'xxx'
+                }, {
+                    type: '#jsx',
+                    nodeValue: '222'
                 }]
             })
         })
