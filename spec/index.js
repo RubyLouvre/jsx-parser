@@ -30,6 +30,29 @@ describe("jsx parser", function() {
             ])
         })
     })
+    describe("处理[{(", function() {
+        it('test', function() {
+            expect(parse('<div {...[<div/>]} />')).toEqual({
+                type: 'div',
+                props: {
+                    spreadAttribute: [{
+                        nodeValue: '...[',
+                        type: '#jsx'
+                    }, {
+                        type: 'div',
+                        props: {},
+                        isVoidTag: true,
+                        children: []
+                    }, {
+                        nodeValue: ']',
+                        type: '#jsx'
+                    }]
+                },
+                isVoidTag: true,
+                children: []
+            })
+        })
+    })
     describe("文本节点中的JSX", function() {
         it("test", function() {
 
