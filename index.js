@@ -197,7 +197,9 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                         }
                         empty = false
                         word = c + word
-
+                        if (word.length > 7) { //性能优化
+                            break
+                        }
                     } while (--index >= 0);
                     var chunkString = string.slice(i)
                     if (word === '' || /(=>|return)$/.test(word) && /\<\w/.test(chunkString)) {
