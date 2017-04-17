@@ -171,6 +171,7 @@
             codeIndex = 0,
             nodes = [],
             quote,
+            escape,
             state = 'code'
         for (var i = 0, n = string.length; i < n; i++) {
             var c = string[i]
@@ -179,6 +180,7 @@
                     if (c === '"' || c === "'") {
                         state = 'string'
                         quote = c
+                        escape = false
                     } else if (c === '{') {
                         braceIndex++
                     } else if (c === '}') {
@@ -217,7 +219,9 @@
                     }
                     break
                 case 'string':
-                    if (c === quote) {
+                    if (c == '\\')
+                        escape = !escape
+                    if (c === quote && !escape) {
                         state = 'code'
                     }
                     break
@@ -351,6 +355,7 @@
             attrName = '',
             attrValue = '',
             quote,
+            escape,
             props = {}
 
         for (var i = 0, n = string.length; i < n; i++) {
@@ -383,15 +388,18 @@
                 case 'AttrQuoteOrJSX':
                     if (c === '"' || c === "'") {
                         quote = c
+                        escape = false
                         state = 'AttrValue'
                     } else if (c === '{') {
                         state = 'JSX'
                     }
                     break
                 case 'AttrValue':
+                    if (c === '\\')
+                        escape = !escape
                     if (c !== quote) {
                         attrValue += c
-                    } else if (c === quote) {
+                    } else if (c === quote && !escape) {
                         props[attrName] = attrValue
                         attrName = attrValue = ''
                         state = 'AttrNameOrJSX'

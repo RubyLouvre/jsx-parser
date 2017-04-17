@@ -167,6 +167,7 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
         codeIndex = 0,
         nodes = [],
         quote,
+        escape = false,
         state = 'code'
     for (var i = 0, n = string.length; i < n; i++) {
         var c = string[i]
@@ -213,7 +214,10 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                 }
                 break
             case 'string':
-                if (c === quote) {
+                if (c === '\\') {
+                    escape = !escape
+                }
+                if (c === quote && !escape) {
                     state = 'code'
                 }
                 break
@@ -347,6 +351,7 @@ function getAttrs(string) {
         attrName = '',
         attrValue = '',
         quote,
+        escape,
         props = {}
 
     for (var i = 0, n = string.length; i < n; i++) {
@@ -380,14 +385,18 @@ function getAttrs(string) {
                 if (c === '"' || c === "'") {
                     quote = c
                     state = 'AttrValue'
+                    escape = false
                 } else if (c === '{') {
                     state = 'JSX'
                 }
                 break
             case 'AttrValue':
+                if (c === '\\') {
+                    escape = !escape
+                }
                 if (c !== quote) {
                     attrValue += c
-                } else if (c === quote) {
+                } else if (c === quote && !escape) {
                     props[attrName] = attrValue
                     attrName = attrValue = ''
                     state = 'AttrNameOrJSX'
