@@ -19,14 +19,14 @@ JSXParser.prototype = {
         return parse(this.input, this.getOne)
     }
 }
-
-/**
- * 
- * 
- * @param {any} string 
- * @param {any} getOne 只返回一个节点
- * @returns 
- */
+var rsp = /\s/
+    /**
+     * 
+     * 
+     * @param {any} string 
+     * @param {any} getOne 只返回一个节点
+     * @returns 
+     */
 function parse(string, getOne) {
     getOne = (getOne === void 666 || getOne === true)
     var ret = lexer(string, getOne)
@@ -190,10 +190,10 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                         index = i - 1
                     do {
                         c = string.charAt(index)
-                        if (empty && c === ' ') {
+                        if (empty && rsp.test(c)) {
                             continue
                         }
-                        if (c === ' ') {
+                        if (rsp.test(c)) {
                             break
                         }
                         empty = false
@@ -361,7 +361,7 @@ function getAttrs(string) {
                 if (c === '/' || c === '>') {
                     return [string.slice(0, i), props]
                 }
-                if (c === ' ') {
+                if (rsp.test(c)) {
                     if (attrName) {
                         state = 'AttrEqual'
                     }

@@ -163,8 +163,8 @@
             }
         }
     }
-
-    //它用于解析{}中的内容，如果遇到不匹配的}则返回, 根据标签切割里面的内容 
+    var rsp = /\s/
+        //它用于解析{}中的内容，如果遇到不匹配的}则返回, 根据标签切割里面的内容 
     function parseCode(string) { // <div id={ function(){<div/>} }>
         var word = '', //用于匹配前面的单词
             braceIndex = 1,
@@ -195,10 +195,10 @@
                             index = i - 1
                         do {
                             c = string.charAt(index)
-                            if (empty && c === ' ') {
+                            if (empty && rsp.test(c)) {
                                 continue
                             }
-                            if (c === ' ') {
+                            if (rsp.test(c)) {
                                 break
                             }
                             empty = false
@@ -365,7 +365,7 @@
                     if (c === '/' || c === '>') {
                         return [string.slice(0, i), props]
                     }
-                    if (c === ' ') {
+                    if (rsp.test(c)) {
                         if (attrName) {
                             state = 'AttrEqual'
                         }
