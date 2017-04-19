@@ -8,7 +8,7 @@
         return obj
     }
     var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
-    var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1 }
+    var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1, template: 1, '#comment': 1 }
     var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
 
     var JSXParser = function(a, f) {
