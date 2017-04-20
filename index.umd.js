@@ -8,8 +8,10 @@
         return obj
     }
     var voidTag = oneObject("area,base,basefont,br,col,frame,hr,img,input,link,meta,param,embed,command,keygen,source,track,wbr")
-    var specalTag = { xmp: 1, style: 1, script: 1, noscript: 1, textarea: 1, template: 1, '#comment': 1 }
-    var hiddenTag = { style: 1, script: 1, noscript: 1, template: 1 }
+    var specalTag = oneObject('xmp,style,script,noscript,textarea,template,#comment')
+
+    var hiddenTag = oneObject('style,script,noscript,template')
+
 
     var JSXParser = function(a, f) {
         if (!(this instanceof JSXParser)) {
@@ -174,7 +176,8 @@
             escape,
             state = 'code'
         for (var i = 0, n = string.length; i < n; i++) {
-            var c = string[i]
+            var c = string.charAt(i),
+                next = string.charAt(i + 1)
             switch (state) {
                 case 'code':
                     if (c === '"' || c === "'") {
@@ -219,9 +222,9 @@
                     }
                     break
                 case 'string':
-                    if (c == '\\')
+                    if (c == '\\' && (next === '"' || next === "'")) {
                         escape = !escape
-                    if (c === quote && !escape) {
+                    } else if (c === quote && !escape) {
                         state = 'code'
                     }
                     break
@@ -239,25 +242,38 @@
         }
     }
 
+    var rtbody = /^(tbody|thead|tfoot)$/
+
     function insertTbody(nodes) {
         var tbody = false
-        for (var i = nodes.length - 1; i >= 0; i--) {
+        for (var i = 0, n = nodes.length; i < n; i++) {
             var node = nodes[i]
-            if (/^(tbody|thead|tfoot|#jsx)$/.test(node.type)) {
+            if (rtbody.test(node.nodeName)) {
                 tbody = false
                 continue
             }
-            if (!tbody) {
-                tbody = {
-                    type: 'tbody',
-                    props: {},
-                    children: [node]
+
+            if (node.nodeName === 'tr') {
+                if (tbody) {
+                    nodes.splice(i, 1)
+                    tbody.children.push(node)
+                    n--
+                    i--
+                } else {
+                    tbody = {
+                        nodeName: 'tbody',
+                        props: {},
+                        children: [node]
+                    }
+                    nodes.splice(i, 1, tbody)
                 }
-                nodes.splice(i, 1)
-                nodes.splice(i, 0, tbody)
             } else {
-                nodes.splice(i, 1)
-                tbody.children.unshift(node)
+                if (tbody) {
+                    nodes.splice(i, 1)
+                    tbody.children.push(node)
+                    n--
+                    i--
+                }
             }
         }
     }
@@ -421,7 +437,10 @@
     }
 
     function makeJSX(JSXNode) {
-        return JSXNode.length === 1 && JSXNode[0].type === '#jsx' ? JSXNode[0] : { type: '#jsx', nodeValue: JSXNode }
+        return JSXNode.length === 1 && JSXNode[0].type === '#jsx' ? JSXNode[0] : {
+            type: '#jsx',
+            nodeValue: JSXNode
+        }
     }
 
     return JSXParser;
