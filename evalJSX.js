@@ -56,7 +56,9 @@
                     return cacheStr[this.input]
                 }
                 var array = (new JSXParser(this.input)).parse()
-                var evalString = this.genChildren(array)
+
+
+                var evalString = this.genChildren([array])
                 if (useCache) {
                     return cacheStr[this.input] = evalString
                 }
@@ -104,6 +106,7 @@
         },
         genChildren: function(children, obj, join) {
             if (obj) {
+
                 if (obj.isVoidTag || !obj.children.length) {
                     return 'null'
                 }
@@ -111,7 +114,7 @@
             var ret = []
             for (var i = 0, el; el = children[i++];) {
                 if (el.type === '#jsx') {
-                    static = false
+
                     if (Array.isArray(el.nodeValue)) {
                         ret[ret.length] = this.genChildren(el.nodeValue, null, ' ')
                     } else {

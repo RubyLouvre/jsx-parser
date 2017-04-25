@@ -16,9 +16,8 @@ import JSXParser form 'index'
 
 or 
 ```html
-<script src="index.umd"></script
+<script src="index.umd"></script>
 ```
-
 
 
 how to use
