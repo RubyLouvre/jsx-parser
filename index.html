@@ -16,15 +16,9 @@
     // 
 
     // 用渲染函数构建虚拟模版类
-
-    var str = '<!--ddd-->'
-        //  console.log(JSXParser.parse(str))
-
-    //   var str = '<div id={function(){ return <div/> }} class="className"><p>xxx</p></div>'
-    var str = `<div {...[<div/>]} />`
-    var a = JSXParser(str)
-    console.log('======')
-    console.log(a)
+    var str = `<div id={ 2222 } kkk={<div class={aaa}/>} className="{111}" >xxx{[1,2,3].map(el=> <div>{el}</div>)}yyy
+<span>{xxx}--{yyy}</span></div>`
+    console.log(JSON.stringify(JSXParser(str), null, " "))
 </script>
 
 </html>
