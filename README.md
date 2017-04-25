@@ -174,5 +174,52 @@ var Parent = React.createClass({
     });
 ```
 
- 
+ example
 
+```html
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>JSX Parser</title>
+    <script src="https://cdn.bootcss.com/react/15.5.4/react.js"></script>
+    <script src="https://cdn.bootcss.com/react/15.5.4/react-dom.js"></script>
+    <script src='./index.umd.js'>
+        jsx - parser
+    </script>
+    <script src='./evalJSX.js'></script>
+
+    <script>
+        evalJSX.globalNs = 'React'
+        class A extends React.Component {
+            constructor(props) {
+                super(props)
+                this.state = {
+                    aaa: 111
+                }
+            }
+            render() {
+                return evalJSX(`<div className={"hello"}>{this.state.aaa}</div>`, {
+                    this: this
+                })
+            }
+        }
+        window.onload = function() {
+            ReactDOM.render(React.createElement(A), document.getElementById('example'))
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="example"></div>
+
+</body>
+
+
+</html>
+
+```
+
+![image](https://cloud.githubusercontent.com/assets/190846/25368295/0aad292c-29ae-11e7-9d6f-b1375810d30e.png)
