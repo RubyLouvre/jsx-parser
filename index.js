@@ -8,7 +8,7 @@ var specalTag = oneObject('xmp,style,script,noscript,textarea,template,#comment'
 
 var hiddenTag = oneObject('style,script,noscript,template')
 
-var JSXParser = function(a, f) {
+var JSXParser = function (a, f) {
     if (!(this instanceof JSXParser)) {
         return parse(a, f)
     }
@@ -16,18 +16,18 @@ var JSXParser = function(a, f) {
     this.getOne = f
 }
 JSXParser.prototype = {
-    parse: function() {
+    parse: function () {
         return parse(this.input, this.getOne)
     }
 }
 var rsp = /\s/
-    /**
-     * 
-     * 
-     * @param {any} string 
-     * @param {any} getOne 只返回一个节点
-     * @returns 
-     */
+/**
+ * 
+ * 
+ * @param {any} string 
+ * @param {any} getOne 只返回一个节点
+ * @returns 
+ */
 function parse(string, getOne) {
     getOne = (getOne === void 666 || getOne === true)
     var ret = lexer(string, getOne)
@@ -44,7 +44,7 @@ function lexer(string, getOne) {
     var origString = string
     var origLength = string.length
 
-    stack.last = function() {
+    stack.last = function () {
         return stack[stack.length - 1]
     }
     var ret = []
@@ -68,9 +68,9 @@ function lexer(string, getOne) {
         if (arr) { //处理关闭标签
             string = string.replace(arr[0], '')
             const node = stack.pop()
-                //处理下面两种特殊情况：
-                //1. option会自动移除元素节点，将它们的nodeValue组成新的文本节点
-                //2. table会将没有被thead, tbody, tfoot包起来的tr或文本节点，收集到一个新的tbody元素中
+            //处理下面两种特殊情况：
+            //1. option会自动移除元素节点，将它们的nodeValue组成新的文本节点
+            //2. table会将没有被thead, tbody, tfoot包起来的tr或文本节点，收集到一个新的tbody元素中
             if (node.type === 'option') {
                 node.children = [{
                     type: '#text',
@@ -188,7 +188,7 @@ function parseCode(string) { // <div id={ function(){<div/>} }>
                     }
                 } else if (c === '<') {
                     var word = '',
-                        empty = true ,
+                        empty = true,
                         index = i - 1
                     do {
                         c = string.charAt(index)
@@ -331,7 +331,7 @@ function getOpenTag(string) {
                 leftContent += '/>'
                 string = string.slice(2)
                 node.isVoidTag = true
-            } 
+            }
 
             if (!node.isVoidTag && specalTag[tag]) { //如果是script, style, xmp等元素
                 var closeTag = '</' + tag + '>'
@@ -351,7 +351,7 @@ function getOpenTag(string) {
 
 function getText(node) {
     var ret = ''
-    node.children.forEach(function(el) {
+    node.children.forEach(function (el) {
         if (el.type === '#text') {
             ret += el.nodeValue
         } else if (el.children && !hiddenTag[el.type]) {
@@ -437,4 +437,4 @@ function makeJSX(JSXNode) {
     return JSXNode.length === 1 && JSXNode[0].type === '#jsx' ? JSXNode[0] : { type: '#jsx', nodeValue: JSXNode }
 }
 
-export default JSXParser
+module.exports = JSXParser;
